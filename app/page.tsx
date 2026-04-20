@@ -23,6 +23,20 @@ const marqueeItems = [
 export default function HomePage() {
   const router = useRouter();
   const [annual, setAnnual] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+
+  async function handleCheckout(planKey: string) {
+    setCheckoutLoading(planKey);
+    const res = await fetch("/api/billing/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planKey }),
+    });
+    if (res.status === 401) { router.push("/sign-up"); return; }
+    const { url } = await res.json();
+    if (url) window.location.href = url;
+    else setCheckoutLoading(null);
+  }
   const navRef = useRef<HTMLElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -552,11 +566,13 @@ export default function HomePage() {
                 <li><span className="chk"><Check size={14} /></span>Scheduling — 30 posts queued <span className="coming-soon-chip">Soon</span></li>
                 <li><span className="chk"><Check size={14} /></span>Core analytics</li>
               </ul>
-              <Link href="/sign-up">
-                <button className="btn-pricing accent">
-                  Start Creator {annual ? "· Save $48/yr" : "→"}
-                </button>
-              </Link>
+              <button
+                className="btn-pricing accent"
+                onClick={() => handleCheckout(annual ? "creator_annual" : "creator_monthly")}
+                disabled={!!checkoutLoading}
+              >
+                {checkoutLoading?.startsWith("creator") ? "Redirecting..." : `Start Creator ${annual ? "· Save $48/yr" : "→"}`}
+              </button>
             </div>
 
             {/* TEAM */}
@@ -584,11 +600,13 @@ export default function HomePage() {
                 <li><span className="chk"><Check size={14} /></span>API access (500 calls/mo)</li>
                 <li><span className="chk"><Check size={14} /></span>Live chat support · 4h response</li>
               </ul>
-              <Link href="/sign-up">
-                <button className="btn-pricing">
-                  Start Team {annual ? "· Save $120/yr" : "→"}
-                </button>
-              </Link>
+              <button
+                className="btn-pricing"
+                onClick={() => handleCheckout(annual ? "team_annual" : "team_monthly")}
+                disabled={!!checkoutLoading}
+              >
+                {checkoutLoading?.startsWith("team") ? "Redirecting..." : `Start Team ${annual ? "· Save $120/yr" : "→"}`}
+              </button>
             </div>
           </div>
         </div>

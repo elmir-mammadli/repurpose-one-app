@@ -99,6 +99,7 @@ export default function DashboardPage() {
   const [userInitials, setUserInitials] = useState("?");
   const [userId, setUserId] = useState<string | null>(null);
   const [credits, setCredits] = useState<number>(10);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [history, setHistory] = useState<Generation[]>([]);
 
   const [inputText, setInputText] = useState("");
@@ -148,6 +149,18 @@ export default function DashboardPage() {
       }
     });
   }, []);
+
+  async function handleUpgrade() {
+    setUpgradeLoading(true);
+    const res = await fetch("/api/billing/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planKey: "creator_monthly" }),
+    });
+    const { url } = await res.json();
+    if (url) window.location.href = url;
+    else setUpgradeLoading(false);
+  }
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -398,7 +411,9 @@ ${text}`;
               <b>{credits <= 2 ? `${credits} credits left` : `${credits} credits remaining`}</b> on free plan.<br />
               Upgrade for unlimited repurposing.
             </div>
-            <button className="btn-upgrade">Upgrade $12/mo</button>
+            <button className="btn-upgrade" onClick={handleUpgrade} disabled={upgradeLoading}>
+              {upgradeLoading ? "Redirecting..." : "Upgrade $19/mo"}
+            </button>
           </div>
         </div>
 
