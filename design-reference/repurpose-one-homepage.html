@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RepurposeOne — Write once, publish everywhere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0a0a0b;
+  --surface:  #111113;
+  --surface2: #18181b;
+  --border:   #27272a;
+  --border2:  #3f3f46;
+  --muted:    #71717a;
+  --text:     #fafafa;
+  --text-2:   #a1a1aa;
+  --accent:   #e8ff47;
+  --accent-2: #c8e820;
+  --green:    #4ade80;
+  --radius:   10px;
+  --radius-lg:16px;
+}
+
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; cursor: none; }
+
+/* ── Cursor ── */
+#cursor { position: fixed; z-index: 9999; pointer-events: none; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; transform: translate(-50%,-50%); mix-blend-mode: difference; }
+#cursor-ring { position: fixed; z-index: 9998; pointer-events: none; width: 38px; height: 38px; border: 1.5px solid rgba(232,255,71,.35); border-radius: 50%; transform: translate(-50%,-50%); }
+#cursor-label { position: fixed; z-index: 9997; pointer-events: none; font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #0a0a0b; background: var(--accent); padding: 3px 9px; border-radius: 99px; white-space: nowrap; opacity: 0; transform: translate(-50%,-50%); }
+
+/* ── Noise ── */
+body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .032; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 128px 128px; }
+
+#particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5; }
+#progress-line { position: fixed; top: 0; left: 0; height: 2px; z-index: 200; background: var(--accent); width: 0%; box-shadow: 0 0 12px rgba(232,255,71,.6); }
+
+/* ── NAV ── */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 60px; border-bottom: 1px solid rgba(39,39,42,0); transition: border-color .4s, background .4s; }
+nav.scrolled { border-color: var(--border); background: rgba(10,10,11,.88); backdrop-filter: blur(18px); }
+.nav-logo { font-family: 'Instrument Serif', serif; font-size: 1.3rem; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateY(-8px); }
+.nav-logo span { color: var(--accent); }
+.nav-badge { font-size: .6rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; background: var(--accent); color: #0a0a0b; padding: 2px 8px; border-radius: 99px; }
+.nav-links { display: flex; align-items: center; gap: 32px; list-style: none; opacity: 0; transform: translateY(-8px); }
+.nav-links a { font-size: .82rem; color: var(--text-2); text-decoration: none; transition: color .15s; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta { display: flex; align-items: center; gap: 12px; opacity: 0; transform: translateY(-8px); }
+.btn-ghost { font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 500; color: var(--text-2); background: none; border: none; cursor: none; padding: 6px 12px; border-radius: 8px; transition: color .15s; }
+.btn-ghost:hover { color: var(--text); }
+.btn-nav { font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600; background: var(--accent); color: #0a0a0b; border: none; border-radius: 8px; padding: 8px 18px; cursor: none; transition: background .15s; position: relative; overflow: hidden; }
+.btn-nav:hover { background: var(--accent-2); }
+
+/* ── HERO ── */
+.hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 40px 80px; position: relative; overflow: hidden; text-align: center; }
+.hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(232,255,71,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(232,255,71,.04) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%); }
+.hero-glow { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 700px; height: 500px; background: radial-gradient(ellipse, rgba(232,255,71,.1) 0%, transparent 70%); pointer-events: none; }
+#flow-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: .15; }
+.flow-path { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 1200; stroke-dashoffset: 1200; }
+
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); background: rgba(232,255,71,.08); border: 1px solid rgba(232,255,71,.2); padding: 6px 16px; border-radius: 99px; margin-bottom: 36px; opacity: 0; }
+.eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 1.4s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+.hero-title { font-family: 'Instrument Serif', serif; font-size: clamp(4.5rem, 11vw, 10rem); line-height: .9; letter-spacing: -.035em; font-weight: 400; max-width: 1100px; position: relative; z-index: 1; }
+.hero-title .line { display: block; overflow: hidden; }
+.hero-title .word { display: inline-block; }
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-title .outline { -webkit-text-stroke: 1.5px rgba(250,250,250,.7); color: transparent; }
+
+.hero-sub { font-size: clamp(.9rem, 1.5vw, 1.1rem); color: var(--text-2); line-height: 1.75; max-width: 480px; margin: 44px auto 0; font-weight: 300; opacity: 0; }
+.hero-actions { display: flex; align-items: center; gap: 14px; margin-top: 48px; opacity: 0; }
+.mag-wrap { position: relative; display: inline-flex; }
+
+.btn-primary-lg { font-family: 'DM Sans', sans-serif; font-size: .95rem; font-weight: 600; background: var(--accent); color: #0a0a0b; border: none; border-radius: var(--radius); padding: 15px 30px; cursor: none; display: flex; align-items: center; gap: 8px; letter-spacing: -.01em; position: relative; overflow: hidden; transition: background .2s, box-shadow .2s; }
+.btn-primary-lg:hover { background: var(--accent-2); box-shadow: 0 12px 40px rgba(232,255,71,.3); }
+.btn-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+.btn-ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,.25); pointer-events: none; transform: scale(0); width: 100px; height: 100px; margin-left: -50px; margin-top: -50px; }
+.btn-secondary-lg { font-family: 'DM Sans', sans-serif; font-size: .95rem; font-weight: 500; background: none; color: var(--text-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 15px 30px; cursor: none; transition: all .2s; display: flex; align-items: center; gap: 8px; }
+.btn-secondary-lg:hover { border-color: var(--border2); color: var(--text); }
+
+.hero-scroll { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; opacity: 0; }
+.scroll-line { width: 1px; height: 44px; background: linear-gradient(to bottom, var(--accent), transparent); transform-origin: top; }
+
+/* ── MARQUEE ── */
+.marquee-wrap { overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); padding: 14px 0; }
+.marquee-track { display: flex; gap: 0; animation: marquee 32s linear infinite; width: max-content; transition: animation-duration .3s; }
+.marquee-item { display: flex; align-items: center; gap: 16px; padding: 0 28px; font-family: 'Instrument Serif', serif; font-size: 1rem; color: var(--text-2); white-space: nowrap; }
+.marquee-dot { color: var(--accent); font-size: 1.2rem; line-height: 0; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── STATS ── */
+.stats-outer { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-top: 80px; }
+.stat-box { background: var(--surface2); padding: 40px 32px; }
+.stat-ticker { display: inline-block; font-family: 'Instrument Serif', serif; font-size: clamp(2.8rem,5vw,4.5rem); color: var(--accent); letter-spacing: -.03em; line-height: 1; }
+.stat-box-label { font-size: .73rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 8px; }
+
+/* ── SECTION ── */
+.section { padding: 130px 40px; max-width: 1200px; margin: 0 auto; }
+.section-label { font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.section-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+.section-title { font-family: 'Instrument Serif', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.05; letter-spacing: -.025em; font-weight: 400; max-width: 720px; }
+.section-title em { font-style: italic; color: var(--accent); }
+
+/* ── FEATURES ── */
+.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-top: 64px; }
+.feature-card { background: var(--surface); padding: 36px 32px; position: relative; overflow: hidden; transition: background .2s; }
+.feature-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(232,255,71,.05) 0%, transparent 60%); opacity: 0; transition: opacity .3s; }
+.feature-card:hover { background: var(--surface2); }
+.feature-card:hover::before { opacity: 1; }
+.feature-icon { width: 44px; height: 44px; background: rgba(232,255,71,.08); border: 1px solid rgba(232,255,71,.2); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--accent); }
+.feature-title { font-family: 'Instrument Serif', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 12px; letter-spacing: -.01em; }
+.feature-desc { font-size: .84rem; color: var(--text-2); line-height: 1.75; }
+
+/* ── HSCROLL ── */
+.hscroll-outer { overflow: hidden; position: relative; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.hscroll-header { max-width: 1200px; margin: 0 auto; padding: 60px 40px 20px; }
+.hscroll-track { display: flex; gap: 20px; padding: 40px 40px 60px; will-change: transform; }
+.hscroll-card { flex-shrink: 0; width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; transition: border-color .2s; }
+.hscroll-card:hover { border-color: var(--border2); }
+.hscroll-num { font-family: 'Instrument Serif', serif; font-size: 3rem; color: rgba(232,255,71,.12); line-height: 1; letter-spacing: -.04em; margin-bottom: 12px; }
+.hscroll-icon { color: var(--accent); margin-bottom: 14px; display: flex; }
+.hscroll-title { font-size: .95rem; font-weight: 600; margin-bottom: 10px; }
+.hscroll-desc { font-size: .82rem; color: var(--text-2); line-height: 1.65; }
+
+/* ── PLATFORMS ── */
+.platforms-section { padding: 130px 40px; max-width: 1200px; margin: 0 auto; }
+.platforms-showcase { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 52px; }
+.platform-pill { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 99px; font-size: .88rem; font-weight: 500; transition: all .2s; cursor: none; }
+.platform-pill:hover { border-color: var(--border2); background: var(--surface2); transform: translateY(-3px); }
+.platform-pill .pp-icon { color: var(--text-2); display: flex; }
+.pp-status { font-size: .65rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; }
+.pp-live { background: rgba(74,222,128,.12); color: var(--green); }
+.pp-soon { background: rgba(113,113,122,.12); color: var(--muted); }
+
+/* ── TESTIMONIALS ── */
+.testi-section { padding: 130px 40px; max-width: 1200px; margin: 0 auto; }
+.testi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 64px; }
+.testi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; transition: border-color .2s, transform .25s; }
+.testi-card:hover { border-color: var(--border2); transform: translateY(-4px); }
+.testi-stars { color: var(--accent); font-size: .85rem; margin-bottom: 16px; letter-spacing: 2px; }
+.testi-text { font-size: .88rem; line-height: 1.8; color: var(--text-2); margin-bottom: 20px; font-style: italic; }
+.testi-text b { color: var(--text); font-style: normal; }
+.testi-author { display: flex; align-items: center; gap: 12px; }
+.testi-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; color: #0a0a0b; flex-shrink: 0; }
+.testi-name { font-size: .82rem; font-weight: 600; }
+.testi-handle { font-size: .72rem; color: var(--muted); }
+
+/* ── PRICING ── */
+.pricing-section { padding: 130px 40px; background: var(--surface); border-top: 1px solid var(--border); }
+.pricing-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+.pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 64px; text-align: left; }
+.pricing-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; position: relative; overflow: hidden; transition: border-color .2s, transform .25s; }
+.pricing-card:hover { transform: translateY(-5px); border-color: var(--border2); }
+.pricing-card.featured { border-color: var(--accent); background: linear-gradient(135deg, rgba(232,255,71,.06) 0%, var(--bg) 60%); }
+.pricing-card.featured::before { content: 'Most Popular'; position: absolute; top: 16px; right: 16px; font-size: .65rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: var(--accent); color: #0a0a0b; padding: 3px 10px; border-radius: 99px; }
+.pricing-name { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+.pricing-price { font-family: 'Instrument Serif', serif; font-size: 3.5rem; font-weight: 400; letter-spacing: -.03em; line-height: 1; margin-bottom: 6px; }
+.pricing-price sup { font-size: 1.5rem; vertical-align: super; }
+.pricing-period { font-size: .78rem; color: var(--muted); margin-bottom: 28px; }
+.pricing-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.pricing-features li { font-size: .83rem; color: var(--text-2); display: flex; align-items: center; gap: 10px; }
+.pricing-features li .chk { color: var(--accent); flex-shrink: 0; display: flex; }
+.pricing-features li.off .chk { color: var(--muted); }
+.pricing-features li.off { color: var(--muted); }
+.btn-pricing { width: 100%; font-family: 'DM Sans', sans-serif; font-size: .85rem; font-weight: 600; padding: 12px; border-radius: var(--radius); cursor: none; transition: all .15s; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.btn-pricing:hover { border-color: var(--border2); background: var(--surface2); }
+.btn-pricing.accent { background: var(--accent); color: #0a0a0b; border-color: var(--accent); }
+.btn-pricing.accent:hover { background: var(--accent-2); }
+
+/* ── CTA ── */
+.cta-section { padding: 180px 40px; text-align: center; position: relative; overflow: hidden; }
+.cta-section::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 900px; height: 600px; background: radial-gradient(ellipse, rgba(232,255,71,.08) 0%, transparent 70%); pointer-events: none; }
+.cta-big { font-family: 'Instrument Serif', serif; font-size: clamp(3.5rem, 9vw, 8rem); line-height: .95; letter-spacing: -.03em; font-weight: 400; position: relative; z-index: 1; }
+.cta-big em { font-style: italic; color: var(--accent); }
+.cta-sub { font-size: .95rem; color: var(--text-2); margin-top: 24px; position: relative; z-index: 1; }
+.cta-actions { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 48px; position: relative; z-index: 1; }
+
+/* ── FOOTER ── */
+footer { border-top: 1px solid var(--border); padding: 48px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+.footer-logo { font-family: 'Instrument Serif', serif; font-size: 1.15rem; }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { font-size: .78rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { font-size: .75rem; color: var(--muted); }
+
+.reveal { opacity: 0; transform: translateY(32px); }
+
+@media (max-width: 900px) {
+  .features-grid, .pricing-grid, .testi-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  nav { padding: 0 20px; }
+  .hero { padding: 100px 24px 60px; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="progress-line"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="cursor-label"></div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <div class="nav-logo" id="navLogo">Repurpose<span>One</span><span class="nav-badge">Beta</span></div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#platforms">Platforms</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <div class="nav-cta" id="navCta">
+    <button class="btn-ghost">Sign in</button>
+    <button class="btn-nav">Start free →</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow" id="heroGlow"></div>
+  <svg id="flow-svg" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice">
+    <path class="flow-path" id="fp1" d="M-100,200 C200,100 400,350 700,250 C1000,150 1200,380 1540,290"/>
+    <path class="flow-path" id="fp2" d="M-100,400 C300,280 500,550 800,400 C1100,270 1300,490 1540,370"/>
+    <path class="flow-path" id="fp3" d="M-100,600 C200,490 600,700 900,560 C1200,440 1360,610 1540,540"/>
+  </svg>
+
+  <div class="hero-eyebrow" id="heroEyebrow">
+    <span class="eyebrow-dot"></span>
+    Now with direct publishing
+  </div>
+  <h1 class="hero-title" id="heroTitle">
+    <span class="line"><span class="word">Write</span>&nbsp;<span class="word outline">once.</span></span>
+    <span class="line"><span class="word">Publish</span>&nbsp;<span class="word"><em>everywhere.</em></span></span>
+  </h1>
+  <p class="hero-sub" id="heroSub">Paste your long-form content. Pick your platforms. Get native, ready-to-post copy for each in seconds — then publish directly. No more copy-paste marathons.</p>
+  <div class="hero-actions" id="heroActions">
+    <div class="mag-wrap">
+      <button class="btn-primary-lg" data-cursor="Get started">
+        <div class="btn-inner"><i data-lucide="layers" width="16" height="16"></i> Start repurposing free</div>
+      </button>
+    </div>
+    <button class="btn-secondary-lg"><i data-lucide="play-circle" width="16" height="16"></i> Watch 60s demo</button>
+  </div>
+  <div class="hero-scroll" id="heroScroll"><div class="scroll-line" id="scrollLine"></div>Scroll</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="mtrack">
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Twitter / X</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> LinkedIn</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Newsletter</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Threads</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Instagram</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Reddit</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Write Once</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Publish Everywhere</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Save 8 hrs / week</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Twitter / X</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> LinkedIn</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Newsletter</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Threads</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Instagram</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Reddit</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Write Once</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Publish Everywhere</div>
+    <div class="marquee-item"><span class="marquee-dot">✦</span> Save 8 hrs / week</div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-outer">
+  <div class="stats-row reveal">
+    <div class="stat-box"><div class="stat-ticker" data-target="12400" data-suffix="+">0</div><div class="stat-box-label">Creators using it</div></div>
+    <div class="stat-box"><div class="stat-ticker" data-target="8" data-suffix="hrs">0</div><div class="stat-box-label">Saved per week</div></div>
+    <div class="stat-box"><div class="stat-ticker" data-target="6" data-suffix="">0</div><div class="stat-box-label">Platforms supported</div></div>
+    <div class="stat-box"><div class="stat-ticker" data-target="98" data-suffix="%">0</div><div class="stat-box-label">Would recommend</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-label reveal">What you get</div>
+  <h2 class="section-title reveal">Built for creators who <em>actually ship.</em></h2>
+  <div class="features-grid">
+    <div class="feature-card fc"><div class="feature-icon"><i data-lucide="cpu" width="20" height="20"></i></div><div class="feature-title">Platform-native copy</div><div class="feature-desc">Not a simple repost. The AI rewrites your hook, angle, and format to feel native on every platform — LinkedIn gets professional, Twitter gets punchy, Reddit gets real.</div></div>
+    <div class="feature-card fc"><div class="feature-icon"><i data-lucide="send" width="20" height="20"></i></div><div class="feature-title">One-click publishing</div><div class="feature-desc">Connect your accounts once. Hit "Post" directly from the dashboard. No switching tabs, no copy-paste, no login juggling. Your whole distribution in one place.</div></div>
+    <div class="feature-card fc"><div class="feature-icon"><i data-lucide="sliders-horizontal" width="20" height="20"></i></div><div class="feature-title">Tone control</div><div class="feature-desc">Choose from 6 tones — Professional, Casual, Witty, Storytelling, Educational, Bold. Your voice, adapted to each platform's culture and audience expectations.</div></div>
+    <div class="feature-card fc"><div class="feature-icon"><i data-lucide="calendar-clock" width="20" height="20"></i></div><div class="feature-title">Smart scheduling</div><div class="feature-desc">Queue your posts for peak engagement times. Platform-specific optimal windows, auto-detected from your audience data. Set it and forget it.</div></div>
+    <div class="feature-card fc"><div class="feature-icon"><i data-lucide="bar-chart-3" width="20" height="20"></i></div><div class="feature-title">Performance analytics</div><div class="feature-desc">See which repurposed posts hit hardest. Cross-platform analytics in one view — impressions, clicks, engagement rate. Know what to double down on.</div></div>
+    <div class="feature-card fc"><div class="feature-icon"><i data-lucide="shield-check" width="20" height="20"></i></div><div class="feature-title">Secure OAuth auth</div><div class="feature-desc">Industry-standard OAuth 2.0 for every platform. Your credentials never touch our servers — tokens are encrypted at rest and in transit, always.</div></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS — HORIZONTAL SCROLL -->
+<div class="hscroll-outer" id="how">
+  <div class="hscroll-header">
+    <div class="section-label reveal">How it works</div>
+    <h2 class="section-title reveal">From one article to <em>six platforms</em> in 30 seconds.</h2>
+  </div>
+  <div class="hscroll-track" id="hscrollTrack">
+    <div class="hscroll-card"><div class="hscroll-num">01</div><div class="hscroll-icon"><i data-lucide="file-text" width="22" height="22"></i></div><div class="hscroll-title">Paste your content</div><div class="hscroll-desc">Drop in your blog post, newsletter draft, video script, or raw notes. Any length, any format.</div></div>
+    <div class="hscroll-card"><div class="hscroll-num">02</div><div class="hscroll-icon"><i data-lucide="layout-grid" width="22" height="22"></i></div><div class="hscroll-title">Pick platforms</div><div class="hscroll-desc">Select which channels to hit — Twitter, LinkedIn, Newsletter, Threads, Instagram, Reddit, or all six.</div></div>
+    <div class="hscroll-card"><div class="hscroll-num">03</div><div class="hscroll-icon"><i data-lucide="sparkles" width="22" height="22"></i></div><div class="hscroll-title">AI repurposes it</div><div class="hscroll-desc">Claude rewrites your content natively for each platform — hooks, format, hashtags, length all adapted.</div></div>
+    <div class="hscroll-card"><div class="hscroll-num">04</div><div class="hscroll-icon"><i data-lucide="edit-3" width="22" height="22"></i></div><div class="hscroll-title">Tweak if you want</div><div class="hscroll-desc">Each result is fully editable. Adjust tone, swap a hook, punch up the CTA — total creative control.</div></div>
+    <div class="hscroll-card"><div class="hscroll-num">05</div><div class="hscroll-icon"><i data-lucide="rocket" width="22" height="22"></i></div><div class="hscroll-title">Publish or schedule</div><div class="hscroll-desc">Hit Post Now or drop into your queue. Your whole distribution done in seconds.</div></div>
+    <div class="hscroll-card"><div class="hscroll-num">06</div><div class="hscroll-icon"><i data-lucide="trending-up" width="22" height="22"></i></div><div class="hscroll-title">Track performance</div><div class="hscroll-desc">See what landed. Which tone resonated. Improve your strategy every week on autopilot.</div></div>
+  </div>
+</div>
+
+<!-- PLATFORMS -->
+<section class="platforms-section" id="platforms">
+  <div class="section-label reveal">Integrations</div>
+  <h2 class="section-title reveal">Connect your world. <em>Post everywhere</em> at once.</h2>
+  <div class="platforms-showcase">
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="twitter" width="16" height="16"></i></span> Twitter / X <span class="pp-status pp-live">Live</span></div>
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="linkedin" width="16" height="16"></i></span> LinkedIn <span class="pp-status pp-live">Live</span></div>
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="mail" width="16" height="16"></i></span> Newsletter <span class="pp-status pp-live">Live</span></div>
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="at-sign" width="16" height="16"></i></span> Threads <span class="pp-status pp-live">Live</span></div>
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="instagram" width="16" height="16"></i></span> Instagram <span class="pp-status pp-soon">Coming soon</span></div>
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="message-square" width="16" height="16"></i></span> Reddit <span class="pp-status pp-live">Live</span></div>
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="music" width="16" height="16"></i></span> TikTok <span class="pp-status pp-soon">Coming soon</span></div>
+    <div class="platform-pill reveal"><span class="pp-icon"><i data-lucide="youtube" width="16" height="16"></i></span> YouTube Community <span class="pp-status pp-soon">Coming soon</span></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testi-section">
+  <div class="section-label reveal">Social proof</div>
+  <h2 class="section-title reveal">Creators are <em>obsessed.</em></h2>
+  <div class="testi-grid">
+    <div class="testi-card reveal"><div class="testi-stars">★★★★★</div><div class="testi-text">"I was spending <b>3 hours every week</b> manually rewriting my newsletter for each platform. RepurposeOne cut that to 10 minutes. I can't believe I waited this long."</div><div class="testi-author"><div class="testi-avatar" style="background:linear-gradient(135deg,#e8ff47,#4ade80)">MR</div><div><div class="testi-name">Maya Rodriguez</div><div class="testi-handle">@mayacreates · 45k followers</div></div></div></div>
+    <div class="testi-card reveal"><div class="testi-stars">★★★★★</div><div class="testi-text">"The LinkedIn posts it generates <b>feel like I actually wrote them</b>. Not AI slop. Real, human, punchy. My engagement went up 3x in the first month."</div><div class="testi-author"><div class="testi-avatar" style="background:linear-gradient(135deg,#60a5fa,#a78bfa)">JK</div><div><div class="testi-name">James Kim</div><div class="testi-handle">@jamesbuilds · 28k followers</div></div></div></div>
+    <div class="testi-card reveal"><div class="testi-stars">★★★★★</div><div class="testi-text">"The direct publish button is <b>genuinely game-changing</b>. I repurpose, tweak for 60 seconds, hit Post — and I'm done. This should cost 10x more than it does."</div><div class="testi-author"><div class="testi-avatar" style="background:linear-gradient(135deg,#fb923c,#f43f5e)">SL</div><div><div class="testi-name">Sara Linton</div><div class="testi-handle">@saralinton · 91k followers</div></div></div></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<div class="pricing-section" id="pricing">
+  <div class="pricing-inner">
+    <div class="section-label reveal" style="justify-content:center">Pricing</div>
+    <h2 class="section-title reveal" style="margin:0 auto;text-align:center">Simple pricing.<br><em>Cancel anytime.</em></h2>
+    <div class="pricing-grid">
+      <div class="pricing-card reveal"><div class="pricing-name">Free</div><div class="pricing-price"><sup>$</sup>0</div><div class="pricing-period">forever</div><ul class="pricing-features"><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>10 repurposes / month</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>3 platforms</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>All 6 tones</li><li class="off"><span class="chk"><i data-lucide="minus" width="14" height="14"></i></span>Direct publishing</li><li class="off"><span class="chk"><i data-lucide="minus" width="14" height="14"></i></span>Scheduling</li><li class="off"><span class="chk"><i data-lucide="minus" width="14" height="14"></i></span>Analytics</li></ul><button class="btn-pricing">Get started free</button></div>
+      <div class="pricing-card featured reveal"><div class="pricing-name">Pro</div><div class="pricing-price"><sup>$</sup>12</div><div class="pricing-period">per month, billed monthly</div><ul class="pricing-features"><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Unlimited repurposes</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>All 6 platforms</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>All 6 tones</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Direct publishing</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Post scheduling</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Basic analytics</li></ul><button class="btn-pricing accent">Start Pro →</button></div>
+      <div class="pricing-card reveal"><div class="pricing-name">Team</div><div class="pricing-price"><sup>$</sup>39</div><div class="pricing-period">per month, up to 5 seats</div><ul class="pricing-features"><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Everything in Pro</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>5 team members</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Shared brand voice</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Advanced analytics</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>Priority support</li><li><span class="chk"><i data-lucide="check" width="14" height="14"></i></span>API access</li></ul><button class="btn-pricing">Start Team →</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 class="cta-big reveal" id="ctaBig">Stop rewriting.<br>Start <em>publishing.</em></h2>
+  <p class="cta-sub reveal">Join 12,400 creators saving 8 hours every week.</p>
+  <div class="cta-actions reveal">
+    <div class="mag-wrap"><button class="btn-primary-lg" data-cursor="Let's go"><div class="btn-inner"><i data-lucide="layers" width="16" height="16"></i> Start free — no card needed</div></button></div>
+    <button class="btn-secondary-lg"><i data-lucide="monitor" width="16" height="16"></i> See the dashboard</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Repurpose<span>One</span></div>
+  <div class="footer-links"><a href="#">Features</a><a href="#">Pricing</a><a href="#">Blog</a><a href="#">Changelog</a><a href="#">Privacy</a><a href="#">Terms</a></div>
+  <div class="footer-copy">© 2026 RepurposeOne. Built for creators.</div>
+</footer>
+
+<script>
+lucide.createIcons();
+gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+
+/* ── PARTICLES ── */
+(function(){
+  const c = document.getElementById('particles'), ctx = c.getContext('2d');
+  let W, H, pts = [];
+  function resize(){ W = c.width = innerWidth; H = c.height = innerHeight; }
+  resize(); addEventListener('resize', resize);
+  for(let i=0;i<65;i++) pts.push({ x:Math.random()*1e4%innerWidth, y:Math.random()*1e4%innerHeight, r:Math.random()*1.4+.3, dx:(Math.random()-.5)*.22, dy:(Math.random()-.5)*.22, a:Math.random()*.45+.08 });
+  (function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=`rgba(232,255,71,${p.a})`; ctx.fill(); p.x+=p.dx; p.y+=p.dy; if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0; });
+    requestAnimationFrame(draw);
+  })();
+})();
+
+/* ── CURSOR ── */
+const cur=document.getElementById('cursor'), ring=document.getElementById('cursor-ring'), lbl=document.getElementById('cursor-label');
+let mx=0,my=0,rx=0,ry=0,lx=0,ly=0;
+addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function loop(){
+  rx+=(mx-rx)*.13; ry+=(my-ry)*.13;
+  lx+=(mx-lx)*.08; ly+=(my-ly)*.08;
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  lbl.style.left=lx+'px'; lbl.style.top=(ly+32)+'px';
+  requestAnimationFrame(loop);
+})();
+document.querySelectorAll('[data-cursor]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ gsap.to(lbl,{opacity:1,duration:.2}); lbl.textContent=el.dataset.cursor; gsap.to(cur,{scale:0,duration:.15}); gsap.to(ring,{scale:2.2,borderColor:'rgba(232,255,71,.6)',duration:.25}); });
+  el.addEventListener('mouseleave',()=>{ gsap.to(lbl,{opacity:0,duration:.15}); gsap.to(cur,{scale:1,duration:.15}); gsap.to(ring,{scale:1,borderColor:'rgba(232,255,71,.35)',duration:.25}); });
+});
+
+/* ── PROGRESS ── */
+const pline=document.getElementById('progress-line');
+addEventListener('scroll',()=>{ pline.style.width=(scrollY/(document.body.scrollHeight-innerHeight)*100)+'%'; });
+
+/* ── NAV ── */
+ScrollTrigger.create({ start:'top -60', onEnter:()=>mainNav.classList.add('scrolled'), onLeaveBack:()=>mainNav.classList.remove('scrolled') });
+
+/* ── HERO ENTRANCE ── */
+const htl=gsap.timeline({defaults:{ease:'power3.out'}});
+htl.to('#navLogo',{opacity:1,y:0,duration:.7},.15)
+   .to('#navLinks',{opacity:1,y:0,duration:.7},.25)
+   .to('#navCta',{opacity:1,y:0,duration:.7},.3)
+   .to('#heroEyebrow',{opacity:1,duration:.8},.5);
+htl.from(document.querySelectorAll('#heroTitle .word'),{y:'115%',opacity:0,duration:.9,stagger:.14,ease:'power4.out'},.75);
+htl.to('#heroSub',{opacity:1,y:0,duration:.75},1.4)
+   .to('#heroActions',{opacity:1,y:0,duration:.75},1.6)
+   .to('#heroScroll',{opacity:1,duration:.6},2.1);
+
+/* SVG paths draw on */
+[1,2,3].forEach((n,i)=>gsap.to(`#fp${n}`,{strokeDashoffset:0,duration:2.8,ease:'power2.inOut',delay:.5+i*.35}));
+
+/* glow mouse follow */
+addEventListener('mousemove',e=>{
+  gsap.to('#heroGlow',{x:(e.clientX/innerWidth-.5)*60,y:(e.clientY/innerHeight-.5)*32,duration:1.8,ease:'power2.out'});
+});
+/* glow parallax */
+gsap.to('#heroGlow',{y:90,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
+
+/* scroll line pulse */
+gsap.fromTo('#scrollLine',{scaleY:0},{scaleY:1,duration:1.3,ease:'power2.inOut',repeat:-1,yoyo:true,delay:2.4});
+
+/* em float */
+gsap.to('.hero-title em',{y:-9,duration:2.5,ease:'sine.inOut',yoyo:true,repeat:-1});
+
+/* outline glitch */
+const ow=document.querySelector('.outline');
+if(ow) ow.addEventListener('mouseenter',()=>{ gsap.timeline().to(ow,{skewX:-7,duration:.09,ease:'power2.out'}).to(ow,{skewX:3,duration:.07}).to(ow,{skewX:0,duration:.4,ease:'elastic.out(1,.4)'}); });
+
+/* ── MAGNETIC BUTTONS ── */
+document.querySelectorAll('.mag-wrap').forEach(w=>{
+  const b=w.querySelector('button');
+  w.addEventListener('mousemove',e=>{ const r=w.getBoundingClientRect(); gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.4,y:(e.clientY-r.top-r.height/2)*.4,duration:.35,ease:'power2.out'}); });
+  w.addEventListener('mouseleave',()=>gsap.to(b,{x:0,y:0,duration:.65,ease:'elastic.out(1,.4)'}));
+});
+
+/* ripple */
+document.querySelectorAll('.btn-primary-lg').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    const rip=document.createElement('div'); rip.className='btn-ripple';
+    const r=btn.getBoundingClientRect(); rip.style.left=(e.clientX-r.left)+'px'; rip.style.top=(e.clientY-r.top)+'px';
+    btn.appendChild(rip);
+    gsap.to(rip,{scale:9,opacity:0,duration:.75,ease:'power2.out',onComplete:()=>rip.remove()});
+  });
+});
+
+/* ── HORIZONTAL SCROLL ── */
+window.addEventListener('load',()=>{
+  const track=document.getElementById('hscrollTrack');
+  const outer=document.querySelector('.hscroll-outer');
+  const dist=track.scrollWidth-outer.offsetWidth+80;
+  gsap.to(track,{
+    x:-dist, ease:'none',
+    scrollTrigger:{ trigger:outer, start:'top top', end:`+=${dist+500}`, pin:true, scrub:1, anticipatePin:1 }
+  });
+});
+
+/* ── REVEALS ── */
+gsap.utils.toArray('.reveal').forEach((el,i)=>{
+  gsap.fromTo(el,{opacity:0,y:40},{opacity:1,y:0,duration:.8,ease:'power3.out',
+    scrollTrigger:{trigger:el,start:'top 87%',toggleActions:'play none none none'},delay:(i%4)*.06});
+});
+
+/* ── FEATURE CARDS ── */
+gsap.utils.toArray('.fc').forEach((card,i)=>{
+  gsap.fromTo(card,{opacity:0,y:52,rotateX:10},{opacity:1,y:0,rotateX:0,duration:.78,ease:'power3.out',
+    delay:(i%3)*.12,scrollTrigger:{trigger:card,start:'top 88%',toggleActions:'play none none none'}});
+  const icon=card.querySelector('.feature-icon');
+  card.addEventListener('mouseenter',()=>gsap.to(icon,{rotate:-9,scale:1.12,duration:.3,ease:'power2.out'}));
+  card.addEventListener('mouseleave',()=>gsap.to(icon,{rotate:0,scale:1,duration:.45,ease:'elastic.out(1,.5)'}));
+});
+
+/* ── PLATFORM PILLS ── */
+gsap.utils.toArray('.platform-pill').forEach((p,i)=>{
+  gsap.fromTo(p,{opacity:0,scale:.82,y:18},{opacity:1,scale:1,y:0,duration:.55,ease:'back.out(1.7)',
+    delay:i*.08,scrollTrigger:{trigger:p,start:'top 90%',toggleActions:'play none none none'}});
+});
+
+/* ── TESTI CARDS ── */
+gsap.utils.toArray('.testi-card').forEach((c,i)=>{
+  gsap.fromTo(c,{opacity:0,y:42,scale:.95},{opacity:1,y:0,scale:1,duration:.72,ease:'power3.out',
+    delay:i*.16,scrollTrigger:{trigger:c,start:'top 88%',toggleActions:'play none none none'}});
+});
+
+/* ── PRICING 3D TILT ── */
+document.querySelectorAll('.pricing-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    gsap.to(card,{rotateY:(e.clientX-r.left)/r.width*.5-9,rotateX:-((e.clientY-r.top)/r.height*.5-.25)*9,duration:.3,ease:'power2.out',transformPerspective:800});
+  });
+  card.addEventListener('mouseleave',()=>gsap.to(card,{rotateY:0,rotateX:0,duration:.65,ease:'elastic.out(1,.4)'}));
+});
+
+/* ── STAT TICKERS ── */
+document.querySelectorAll('.stat-ticker').forEach(el=>{
+  const t=parseInt(el.dataset.target), s=el.dataset.suffix||'';
+  ScrollTrigger.create({trigger:el,start:'top 85%',once:true,onEnter:()=>{
+    gsap.to({v:0},{v:t,duration:2.1,ease:'power2.out',onUpdate(){ el.textContent=Math.round(this.targets()[0].v).toLocaleString()+s; }});
+  }});
+});
+
+/* ── CTA BIG REVEAL ── */
+ScrollTrigger.create({trigger:'#ctaBig',start:'top 80%',once:true,onEnter:()=>{
+  gsap.fromTo('#ctaBig',{opacity:0,y:64,skewY:3},{opacity:1,y:0,skewY:0,duration:1.1,ease:'power4.out'});
+}});
+
+/* ── MARQUEE SPEED BURST ── */
+window.addEventListener('scroll',()=>{
+  const t=document.getElementById('mtrack');
+  t.style.animationDuration='14s';
+  clearTimeout(window._ms);
+  window._ms=setTimeout(()=>{ t.style.animationDuration='32s'; },350);
+});
+
+/* ── FOOTER HOVER ── */
+document.querySelectorAll('.footer-links a').forEach(a=>{
+  a.addEventListener('mouseenter',()=>gsap.to(a,{y:-2,duration:.2}));
+  a.addEventListener('mouseleave',()=>gsap.to(a,{y:0,duration:.35,ease:'elastic.out(1,.5)'}));
+});
+</script>
+</body>
+</html>

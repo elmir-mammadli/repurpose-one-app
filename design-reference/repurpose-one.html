@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RepurposeOne — Write once, publish everywhere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  /* ── Reset & Tokens ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0a0b;
+    --surface:   #111113;
+    --surface2:  #18181b;
+    --border:    #27272a;
+    --border2:   #3f3f46;
+    --muted:     #71717a;
+    --text:      #fafafa;
+    --text-2:    #a1a1aa;
+    --accent:    #e8ff47;
+    --accent-2:  #c8e820;
+    --red:       #ff4d4f;
+    --green:     #4ade80;
+    --radius:    10px;
+    --radius-lg: 16px;
+    --shadow:    0 1px 3px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+
+  html { font-size: 15px; scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── Layout ── */
+  .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── Nav ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 56px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,11,.85);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .nav-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.25rem; letter-spacing: -.01em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-badge {
+    font-size: .65rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    background: var(--accent); color: #0a0a0b;
+    padding: 2px 7px; border-radius: 99px;
+  }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-credits {
+    font-size: .78rem; color: var(--text-2);
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 4px 12px; border-radius: 99px;
+  }
+  .nav-credits b { color: var(--accent); }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #e8ff47 0%, #4ade80 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 700; color: #0a0a0b; cursor: pointer;
+  }
+
+  /* ── Main ── */
+  main {
+    flex: 1; display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 0;
+    max-width: 1280px; width: 100%; margin: 0 auto;
+    padding: 32px 32px 48px;
+    gap: 24px;
+  }
+
+  /* ── Left Panel ── */
+  .left-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Card (shadcn-style) ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title {
+    font-size: .78rem; font-weight: 600;
+    letter-spacing: .05em; text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .card-body { padding: 20px; }
+
+  /* ── Textarea ── */
+  .input-wrap { position: relative; }
+  textarea {
+    width: 100%; min-height: 220px; resize: vertical;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem; line-height: 1.65;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  .char-count {
+    position: absolute; bottom: 10px; right: 12px;
+    font-size: .72rem; color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* ── Platform Selector ── */
+  .platform-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .platform-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .83rem; font-weight: 500;
+    transition: all .15s;
+    user-select: none;
+  }
+  .platform-btn:hover { border-color: var(--border2); background: #1f1f23; }
+  .platform-btn.active {
+    border-color: var(--accent);
+    background: rgba(232,255,71,.07);
+    color: var(--accent);
+  }
+  .platform-btn.active .picon { opacity: 1; }
+  .picon { font-size: 1.1rem; opacity: .7; transition: opacity .15s; }
+
+  /* ── Tone Selector ── */
+  .tone-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tone-chip {
+    font-size: .75rem; font-weight: 500;
+    padding: 5px 12px; border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-2);
+    cursor: pointer; transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tone-chip:hover { border-color: var(--border2); color: var(--text); }
+  .tone-chip.active {
+    border-color: var(--accent); background: rgba(232,255,71,.1);
+    color: var(--accent);
+  }
+
+  /* ── CTA Button ── */
+  .btn-primary {
+    width: 100%; padding: 13px;
+    background: var(--accent); color: #0a0a0b;
+    border: none; border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9rem; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    letter-spacing: -.01em;
+  }
+  .btn-primary:hover { background: var(--accent-2); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled {
+    opacity: .45; cursor: not-allowed; transform: none;
+  }
+  .btn-primary .spinner {
+    width: 16px; height: 16px; border: 2px solid rgba(0,0,0,.2);
+    border-top-color: #0a0a0b; border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Right Panel ── */
+  .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Empty State ── */
+  .empty-state {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; padding: 64px 32px; text-align: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); border-style: dashed;
+  }
+  .empty-icon {
+    width: 56px; height: 56px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+  }
+  .empty-state h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.3rem; font-weight: 400;
+    color: var(--text);
+  }
+  .empty-state p { font-size: .83rem; color: var(--muted); max-width: 280px; line-height: 1.6; }
+
+  /* ── Result Card ── */
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    animation: fadeUp .3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .result-card:nth-child(2) { animation-delay: .07s; }
+  .result-card:nth-child(3) { animation-delay: .14s; }
+  .result-card:nth-child(4) { animation-delay: .21s; }
+
+  .result-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2);
+  }
+  .result-platform {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .8rem; font-weight: 600;
+  }
+  .result-actions { display: flex; gap: 6px; }
+  .btn-icon {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer;
+    font-size: .85rem; color: var(--text-2);
+    transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-icon:hover { border-color: var(--border2); color: var(--text); }
+  .btn-icon.copied { border-color: var(--green); color: var(--green); }
+
+  .result-body { padding: 16px 18px; }
+  .result-text {
+    font-size: .85rem; line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .result-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .char-badge {
+    font-size: .7rem; color: var(--muted);
+  }
+  .char-badge.warn { color: #fb923c; }
+  .char-badge.ok   { color: var(--green); }
+
+  /* ── Platform colors ── */
+  .p-twitter  { color: #1d9bf0; }
+  .p-linkedin { color: #0a66c2; }
+  .p-email    { color: var(--accent); }
+  .p-threads  { color: #fff; }
+  .p-instagram{ color: #e1306c; }
+  .p-reddit   { color: #ff4500; }
+
+  /* ── Skeleton ── */
+  .skeleton {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .skel-line {
+    height: 12px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--surface2) 25%, #232329 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    margin-bottom: 10px;
+  }
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+  }
+
+  /* ── Stats Bar ── */
+  .stats-bar {
+    display: flex; gap: 16px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-val {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.4rem; color: var(--text);
+    line-height: 1;
+  }
+  .stat-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .stat-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
+
+  /* ── History ── */
+  .history-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item:hover { opacity: .7; }
+  .history-title { font-size: .82rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Upgrade Banner ── */
+  .upgrade-banner {
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(232,255,71,.08) 0%, rgba(74,222,128,.06) 100%);
+    border: 1px solid rgba(232,255,71,.2);
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .upgrade-text { font-size: .8rem; color: var(--text-2); }
+  .upgrade-text b { color: var(--accent); }
+  .btn-upgrade {
+    flex-shrink: 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .75rem; font-weight: 600;
+    padding: 6px 14px;
+    background: var(--accent); color: #0a0a0b;
+    border: none; border-radius: 6px; cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-upgrade:hover { background: var(--accent-2); }
+
+  /* ── Error ── */
+  .error-msg {
+    padding: 12px 16px;
+    background: rgba(255,77,79,.08);
+    border: 1px solid rgba(255,77,79,.3);
+    border-radius: var(--radius);
+    font-size: .82rem; color: #ff7875;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; padding: 20px 16px; }
+    .platform-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">
+    Repurpose<span>One</span>
+    <span class="nav-badge">Beta</span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-credits">Credits: <b id="creditsLeft">8</b> / 10</div>
+    <div class="avatar">JD</div>
+  </div>
+</nav>
+
+<!-- Main -->
+<main>
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+
+    <!-- Input Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Your Content</span>
+        <span style="font-size:.72rem;color:var(--muted)">Paste article, script, or idea</span>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+        <div class="input-wrap">
+          <textarea id="inputText" placeholder="Paste your long-form content here — blog post, newsletter, video script, podcast notes...
+
+The AI will intelligently adapt it for each platform you select." maxlength="8000"></textarea>
+          <span class="char-count" id="charCount">0 / 8000</span>
+        </div>
+        <div class="error-msg" id="errorMsg"></div>
+      </div>
+    </div>
+
+    <!-- Platforms Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Platforms</span>
+        <span style="font-size:.72rem;color:var(--muted)" id="platformCount">0 selected</span>
+      </div>
+      <div class="card-body">
+        <div class="platform-grid">
+          <button class="platform-btn active" data-platform="twitter" onclick="togglePlatform(this)">
+            <span class="picon">𝕏</span> Twitter / X
+          </button>
+          <button class="platform-btn active" data-platform="linkedin" onclick="togglePlatform(this)">
+            <span class="picon">💼</span> LinkedIn
+          </button>
+          <button class="platform-btn active" data-platform="email" onclick="togglePlatform(this)">
+            <span class="picon">✉️</span> Newsletter
+          </button>
+          <button class="platform-btn" data-platform="threads" onclick="togglePlatform(this)">
+            <span class="picon">@</span> Threads
+          </button>
+          <button class="platform-btn" data-platform="instagram" onclick="togglePlatform(this)">
+            <span class="picon">📸</span> Instagram
+          </button>
+          <button class="platform-btn" data-platform="reddit" onclick="togglePlatform(this)">
+            <span class="picon">👾</span> Reddit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tone Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Tone</span>
+      </div>
+      <div class="card-body">
+        <div class="tone-row">
+          <button class="tone-chip active" data-tone="professional" onclick="selectTone(this)">Professional</button>
+          <button class="tone-chip" data-tone="casual" onclick="selectTone(this)">Casual</button>
+          <button class="tone-chip" data-tone="witty" onclick="selectTone(this)">Witty</button>
+          <button class="tone-chip" data-tone="storytelling" onclick="selectTone(this)">Storytelling</button>
+          <button class="tone-chip" data-tone="educational" onclick="selectTone(this)">Educational</button>
+          <button class="tone-chip" data-tone="bold" onclick="selectTone(this)">Bold</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate -->
+    <button class="btn-primary" id="generateBtn" onclick="generate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      Repurpose Content
+    </button>
+
+    <!-- History -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent</span>
+      </div>
+      <div class="card-body" style="padding-top:4px;padding-bottom:4px">
+        <div class="history-item" onclick="loadHistory(0)">
+          <div class="history-title">How I grew my newsletter to 10k...</div>
+          <div class="history-meta">3 platforms · 2 hours ago</div>
+        </div>
+        <div class="history-item" onclick="loadHistory(1)">
+          <div class="history-title">The future of remote work in 2026</div>
+          <div class="history-meta">4 platforms · Yesterday</div>
+        </div>
+        <div class="history-item" onclick="loadHistory(2)">
+          <div class="history-title">5 tools every creator needs</div>
+          <div class="history-meta">2 platforms · 2 days ago</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upgrade -->
+    <div class="upgrade-banner">
+      <div class="upgrade-text">
+        <b>2 credits left</b> on free plan.<br>
+        Upgrade for unlimited repurposing.
+      </div>
+      <button class="btn-upgrade">Upgrade $12/mo</button>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel" id="rightPanel">
+
+    <!-- Stats (hidden until first generation) -->
+    <div class="stats-bar" id="statsBar" style="display:none">
+      <div class="stat">
+        <div class="stat-val" id="statPlatforms">0</div>
+        <div class="stat-label">Platforms</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-val" id="statWords">0</div>
+        <div class="stat-label">Words In</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-val" id="statSaved">0</div>
+        <div class="stat-label">Min Saved</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-label">Total Runs</div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">✦</div>
+      <h3>Ready to repurpose</h3>
+      <p>Paste your content, pick your platforms, choose a tone — and get perfectly adapted copy for each in seconds.</p>
+    </div>
+
+    <!-- Results Container -->
+    <div id="resultsContainer" style="display:flex;flex-direction:column;gap:16px"></div>
+
+  </div>
+</main>
+</div>
+
+<script>
+// ── State ──
+let selectedPlatforms = new Set(['twitter','linkedin','email']);
+let selectedTone = 'professional';
+let credits = 8;
+let totalRuns = 0;
+
+const platformConfig = {
+  twitter:   { label: 'Twitter / X',  icon: '𝕏',  cls: 'p-twitter',   maxChars: 280,  limit: 'Keep threads ≤ 5 tweets. Include hashtags.' },
+  linkedin:  { label: 'LinkedIn',     icon: '💼', cls: 'p-linkedin',  maxChars: 3000, limit: 'Professional, first-person, with a hook opening.' },
+  email:     { label: 'Newsletter',   icon: '✉️', cls: 'p-email',     maxChars: 2000, limit: 'Include subject line, preview text, body with CTA.' },
+  threads:   { label: 'Threads',      icon: '@',  cls: 'p-threads',   maxChars: 500,  limit: 'Conversational, no hashtags, feels personal.' },
+  instagram: { label: 'Instagram',    icon: '📸', cls: 'p-instagram', maxChars: 2200, limit: 'Hook first sentence. 5 hashtags at the end. Emoji friendly.' },
+  reddit:    { label: 'Reddit',       icon: '👾', cls: 'p-reddit',    maxChars: 5000, limit: 'No marketing. Value-first. Title + body format.' },
+};
+
+// ── Platform toggle ──
+function togglePlatform(btn) {
+  const p = btn.dataset.platform;
+  if (selectedPlatforms.has(p)) {
+    if (selectedPlatforms.size === 1) return; // keep at least 1
+    selectedPlatforms.delete(p);
+    btn.classList.remove('active');
+  } else {
+    selectedPlatforms.add(p);
+    btn.classList.add('active');
+  }
+  document.getElementById('platformCount').textContent = selectedPlatforms.size + ' selected';
+}
+
+// ── Tone select ──
+function selectTone(btn) {
+  document.querySelectorAll('.tone-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTone = btn.dataset.tone;
+}
+
+// ── Char count ──
+document.getElementById('inputText').addEventListener('input', function() {
+  document.getElementById('charCount').textContent = this.value.length + ' / 8000';
+});
+
+// ── Copy ──
+function copyText(btnEl, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btnEl.textContent = '✓';
+    btnEl.classList.add('copied');
+    setTimeout(() => {
+      btnEl.textContent = '⎘';
+      btnEl.classList.remove('copied');
+    }, 1800);
+  });
+}
+
+// ── Character badge ──
+function charBadge(len, max) {
+  const pct = len / max;
+  const cls = pct > .95 ? 'warn' : pct > .5 ? 'ok' : '';
+  return `<span class="char-badge ${cls}">${len} / ${max} chars</span>`;
+}
+
+// ── Skeleton ──
+function buildSkeleton(platform) {
+  const cfg = platformConfig[platform];
+  return `
+    <div class="skeleton">
+      <div class="result-header" style="background:var(--surface2)">
+        <div class="result-platform">
+          <span class="${cfg.cls}">${cfg.icon}</span> ${cfg.label}
+        </div>
+      </div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:8px">
+        <div class="skel-line" style="width:90%"></div>
+        <div class="skel-line" style="width:75%"></div>
+        <div class="skel-line" style="width:85%"></div>
+        <div class="skel-line" style="width:60%"></div>
+        <div class="skel-line" style="width:70%"></div>
+      </div>
+    </div>`;
+}
+
+// ── Result card ──
+function buildResultCard(platform, content) {
+  const cfg = platformConfig[platform];
+  const id = 'rc_' + platform;
+  return `
+    <div class="result-card" id="${id}">
+      <div class="result-header">
+        <div class="result-platform">
+          <span class="${cfg.cls}">${cfg.icon}</span> ${cfg.label}
+        </div>
+        <div class="result-actions">
+          <button class="btn-icon" title="Copy" onclick="copyText(this, document.getElementById('rt_${platform}').innerText)">⎘</button>
+        </div>
+      </div>
+      <div class="result-body">
+        <div class="result-text" id="rt_${platform}">${escHtml(content)}</div>
+      </div>
+      <div class="result-footer">
+        ${charBadge(content.length, cfg.maxChars)}
+      </div>
+    </div>`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Main Generate ──
+async function generate() {
+  const text = document.getElementById('inputText').value.trim();
+  const errEl = document.getElementById('errorMsg');
+  errEl.classList.remove('show');
+
+  if (!text) {
+    errEl.textContent = 'Please paste your content first.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (text.length < 50) {
+    errEl.textContent = 'Content is too short — paste at least a paragraph.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (credits <= 0) {
+    errEl.textContent = 'No credits left. Upgrade to continue.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Repurposing...';
+
+  // Hide empty state, show skeletons
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'none';
+  const container = document.getElementById('resultsContainer');
+  const platforms = [...selectedPlatforms];
+  container.innerHTML = platforms.map(buildSkeleton).join('');
+
+  // Build prompt
+  const platformInstructions = platforms.map(p => {
+    const c = platformConfig[p];
+    return `## ${c.label}\n${c.limit}\nMax characters: ${c.maxChars}`;
+  }).join('\n\n');
+
+  const prompt = `You are a professional content repurposing expert. Adapt the article below for ${platforms.length} platform(s) with a ${selectedTone} tone.
+
+PLATFORMS TO GENERATE FOR:
+${platformInstructions}
+
+IMPORTANT RULES:
+- Adapt style and format specifically for each platform — they must feel native
+- Tone across all: ${selectedTone}
+- Do NOT just copy-paste — rewrite hooks and angles for each audience
+- Return ONLY a JSON object with platform keys: ${platforms.join(', ')}
+- Each value is the ready-to-post string for that platform
+- No markdown fences, no explanation text outside JSON
+
+ORIGINAL CONTENT:
+${text}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    let raw = data.content?.map(b => b.text || '').join('') || '';
+    raw = raw.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
+
+    // Render results
+    credits -= 1;
+    document.getElementById('creditsLeft').textContent = credits;
+    totalRuns += 1;
+
+    const wordCount = text.split(/\s+/).length;
+    document.getElementById('statPlatforms').textContent = platforms.length;
+    document.getElementById('statWords').textContent = wordCount;
+    document.getElementById('statSaved').textContent = platforms.length * 8;
+    document.getElementById('statTotal').textContent = totalRuns;
+    document.getElementById('statsBar').style.display = 'flex';
+
+    container.innerHTML = platforms.map(p =>
+      buildResultCard(p, result[p] || '[No content generated for this platform]')
+    ).join('');
+
+  } catch (err) {
+    container.innerHTML = '';
+    document.getElementById('emptyState').style.display = 'flex';
+    errEl.textContent = 'Generation failed — check your connection and try again.';
+    errEl.classList.add('show');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Repurpose Content`;
+}
+
+// ── History loader (demo) ──
+const historyData = [
+  `How I grew my newsletter to 10,000 subscribers in 6 months without spending a single dollar on ads.\n\nIt started as a side project. I was just writing about what I knew — productivity, creator tools, and the systems I use daily. No big strategy. No viral moment. Just consistency.\n\nHere's what actually worked: writing every week without skipping, even when open rates were low. Building in public — sharing real numbers and real failures. And one thing nobody talks about: replying to every reply. Every single one.`,
+  `Remote work in 2026 looks nothing like 2020. We've gone from "survival mode" to something far more intentional. Companies now compete on async-first culture, not office perks. The best employees increasingly choose roles based on timezone flexibility over salary bumps. Here's what the data says, and what it means for your career.`,
+  `5 tools every content creator needs in 2026: 1) An AI repurposing tool. 2) A simple CRM for brand deals. 3) A scheduling tool with analytics. 4) A lightweight newsletter platform. 5) One solid note-taking system. The creators winning right now aren't using more tools — they're using fewer, better ones.`
+];
+
+function loadHistory(idx) {
+  document.getElementById('inputText').value = historyData[idx];
+  document.getElementById('charCount').textContent = historyData[idx].length + ' / 8000';
+  document.getElementById('inputText').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ── Init ──
+document.getElementById('platformCount').textContent = selectedPlatforms.size + ' selected';
+</script>
+</body>
+</html>

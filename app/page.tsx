@@ -345,7 +345,7 @@ export default function HomePage() {
         <p className="hero-sub" id="heroSub">
           Paste your long-form content. Pick your platforms. Get native, ready-to-post copy for each in seconds — then publish directly. No more copy-paste marathons.
         </p>
-        <div className="hero-actions" id="heroActions">
+        <div className="hero-actions flex-col sm:flex-row" id="heroActions">
           <div className="mag-wrap">
             <button className="btn-primary-lg" data-cursor="Get started" onClick={() => router.push("/sign-up")}>
               <div className="btn-inner"><Layers size={16} /> Start repurposing free</div>
