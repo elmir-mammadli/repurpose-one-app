@@ -227,6 +227,31 @@ footer { border-top: 1px solid var(--border); padding: 48px 40px; display: flex;
   .hp-nav { padding: 0 20px; }
   .hero { padding: 100px 24px 60px; }
   .nav-links { display: none; }
+  .section { padding: 80px 24px; }
+  .platforms-section, .testi-section { padding: 80px 24px; }
+  .pricing-section { padding: 80px 24px; }
+  .cta-section { padding: 100px 24px; }
+  .stats-outer { padding: 0 24px; }
+  .hscroll-header { padding: 40px 24px 16px; }
+  .hscroll-track { padding: 24px 20px 40px; }
+  footer { padding: 32px 24px; }
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 80px 16px 48px; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .mag-wrap, .hero-actions .btn-secondary-lg { width: 100%; }
+  .btn-primary-lg, .btn-secondary-lg { justify-content: center; width: 100%; }
+  .cta-actions { flex-direction: column; align-items: stretch; }
+  .cta-actions .mag-wrap, .cta-actions .btn-secondary-lg { width: 100%; }
+  footer { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .footer-links { flex-wrap: wrap; gap: 16px; }
+  .stat-box { padding: 24px 20px; }
+  .pricing-grid { gap: 12px; }
+  .hscroll-outer { -webkit-overflow-scrolling: touch; }
+  .hscroll-track { overflow-x: auto; padding-bottom: 24px; }
+  .features-grid { margin-top: 36px; }
+  .testi-grid, .pricing-grid { margin-top: 36px; }
 }
 
 /* ────────────────────────────────────────────
@@ -386,8 +411,33 @@ textarea::placeholder { color: var(--muted); }
 .error-msg { padding: 12px 16px; background: rgba(255,77,79,.08); border: 1px solid rgba(255,77,79,.3); border-radius: var(--radius); font-size: .82rem; color: #ff7875; }
 
 @media (max-width: 900px) {
-  .db-main { grid-template-columns: 1fr; padding: 20px 16px; }
+  .db-main { grid-template-columns: 1fr; padding: 20px 16px; gap: 16px; }
   .platform-grid { grid-template-columns: 1fr 1fr; }
+  .stats-bar { flex-wrap: wrap; gap: 10px 20px; }
+}
+
+@media (max-width: 600px) {
+  .db-nav { padding: 0 16px; height: 52px; }
+  .db-nav-right { gap: 8px; }
+  .nav-user-email { display: none; }
+  .nav-credits { font-size: .72rem; padding: 3px 10px; }
+  .db-main { padding: 16px 12px 32px; gap: 12px; }
+  .card-body { padding: 14px; }
+  .card-header { padding: 12px 14px 10px; }
+  .stats-bar { padding: 10px 14px; gap: 8px 16px; }
+  .stat-divider { display: none; }
+  .stat-val { font-size: 1.2rem; }
+  .upgrade-banner { flex-direction: column; gap: 10px; }
+  .btn-upgrade { width: 100%; text-align: center; }
+  .empty-state { padding: 40px 20px; }
+  .result-body { padding: 12px 14px; }
+  .result-header { padding: 10px 14px; }
+  .result-footer { padding: 8px 14px; }
+  textarea { min-height: 160px; font-size: .85rem; }
+  .platform-grid { gap: 6px; }
+  .platform-btn { padding: 8px 10px; font-size: .78rem; gap: 7px; }
+  .tone-chip { font-size: .72rem; padding: 4px 10px; }
+  .btn-primary { padding: 12px; font-size: .88rem; }
 }
 
 /* ────────────────────────────────────────────

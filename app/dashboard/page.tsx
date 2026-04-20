@@ -283,7 +283,7 @@ ${text}`;
         <div className="db-nav-right">
           <div className="nav-credits">Credits: <b>{credits}</b> / 10</div>
           {userEmail && (
-            <span style={{ fontSize: ".72rem", color: "var(--muted)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span className="nav-user-email" style={{ fontSize: ".72rem", color: "var(--muted)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {userEmail}
             </span>
           )}
