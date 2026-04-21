@@ -445,11 +445,11 @@ export default function HomePage() {
         <h2 className="section-title reveal">Connect your world. <em>Post everywhere</em> at once.</h2>
         <div className="platforms-showcase">
           {[
-            { icon: <Icon icon="tabler:brand-x" width={16} height={16} />, label: "Twitter / X", status: "live" },
-            { icon: <Icon icon="tabler:brand-linkedin" width={16} height={16} />, label: "LinkedIn", status: "live" },
+            { icon: <Icon icon="skill-icons:twitter" width={16} height={16} />, label: "Twitter / X", status: "live" },
+            { icon: <Icon icon="skill-icons:linkedin" width={16} height={16} />, label: "LinkedIn", status: "live" },
             { icon: <Icon icon="tabler:mail" width={16} height={16} />, label: "Newsletter", status: "live" },
             { icon: <Icon icon="tabler:brand-threads" width={16} height={16} />, label: "Threads", status: "live" },
-            { icon: <Icon icon="tabler:brand-instagram" width={16} height={16} />, label: "Instagram", status: "soon" },
+            { icon: <Icon icon="skill-icons:instagram" width={16} height={16} />, label: "Instagram", status: "soon" },
             { icon: <Icon icon="tabler:brand-reddit" width={16} height={16} />, label: "Reddit", status: "live" },
             { icon: <Icon icon="tabler:brand-tiktok" width={16} height={16} />, label: "TikTok", status: "soon" },
             { icon: <Icon icon="tabler:brand-youtube" width={16} height={16} />, label: "YouTube Community", status: "soon" },
